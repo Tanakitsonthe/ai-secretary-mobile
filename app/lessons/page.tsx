@@ -7,6 +7,7 @@ const TRACKS = [
   { id: "stocks", label: "📈 Stock", color: "from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40" },
   { id: "crypto", label: "₿ Crypto", color: "from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40" },
   { id: "webdev", label: "💻 Web Dev", color: "from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40" },
+  { id: "english", label: "🇬🇧 English", color: "from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-950/40" },
 ];
 
 async function getTrack(track: string) {

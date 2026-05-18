@@ -4,8 +4,9 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/", label: "หน้าหลัก", icon: "🏠" },
-  { href: "/briefs", label: "Daily Brief", icon: "🌅" },
+  { href: "/briefs", label: "Brief", icon: "🌅" },
   { href: "/lessons", label: "บทเรียน", icon: "📚" },
+  { href: "/fitness", label: "Fitness", icon: "💪" },
   { href: "/research", label: "Research", icon: "📊" },
   { href: "/projects", label: "Projects", icon: "🛠️" },
 ];
