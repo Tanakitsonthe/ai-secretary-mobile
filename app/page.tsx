@@ -28,7 +28,15 @@ async function getTodayBrief() {
   }
 }
 
+const QUICK_LINKS = [
+  { href: "/chat", icon: "💬", title: "Chat", subtitle: "8 agents" },
+  { href: "/briefs", icon: "🌅", title: "Brief", subtitle: "ทุกเช้า" },
+  { href: "/lessons", icon: "📚", title: "เรียน", subtitle: "Stock / Web / EN" },
+  { href: "/fitness", icon: "💪", title: "Fitness", subtitle: "80 → 65 kg" },
+];
+
 export default async function HomePage() {
+  const today = todayBkkDate();
   let brief: Awaited<ReturnType<typeof getTodayBrief>> | null = null;
   let error: string | null = null;
 
@@ -39,62 +47,88 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
-        <h1 className="text-lg font-bold">🌅 Daily Brief</h1>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          AI Secretary — สำหรับ NUT
+    <div>
+      {/* Hero */}
+      <header className="px-5 pt-8 pb-5">
+        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 tabular tracking-wide uppercase">
+          {today}
+        </p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight">
+          สวัสดี{" "}
+          <span className="bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 bg-clip-text text-transparent">
+            NUT
+          </span>
+        </h1>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          AI Secretary พร้อมแล้ว
         </p>
       </header>
 
-      {error && (
-        <div className="m-4 p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900">
-          <p className="text-sm text-red-700 dark:text-red-300">⚠ {error}</p>
-          <p className="text-xs text-red-600 dark:text-red-400 mt-2">
-            ตรวจ GITHUB_TOKEN ใน Vercel env vars
-          </p>
-        </div>
-      )}
-
-      {!error && brief?.content && (
-        <>
-          {brief.isFallback && (
-            <div className="mx-4 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-sm text-amber-800 dark:text-amber-200">
-              ℹ Brief ของวันนี้ยังไม่มา — แสดง brief ล่าสุดวันที่ {brief.date}
-            </div>
-          )}
-          <MarkdownView content={brief.content} />
-        </>
-      )}
-
-      {!error && !brief?.content && (
-        <div className="m-4 p-6 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-center">
-          <p className="text-zinc-600 dark:text-zinc-400">
-            ยังไม่มี daily brief
-          </p>
-          <p className="text-xs mt-2 text-zinc-500">
-            Routine จะสร้างให้ทุกเช้า 07:20 BKK
-          </p>
-        </div>
-      )}
-
-      <section className="m-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200 dark:border-blue-900">
-        <h2 className="font-semibold mb-2">🚀 Quick Access</h2>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <Link href="/lessons" className="rounded-lg bg-white dark:bg-zinc-800 p-3 hover:scale-105 transition">
-            📚 บทเรียน
+      {/* Quick links — 2x2 grid */}
+      <section className="px-5 grid grid-cols-2 gap-3">
+        {QUICK_LINKS.map((q) => (
+          <Link
+            key={q.href}
+            href={q.href}
+            className="card p-4 active:scale-[0.98] transition-transform"
+          >
+            <div className="text-2xl">{q.icon}</div>
+            <p className="mt-2 font-semibold text-sm">{q.title}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              {q.subtitle}
+            </p>
           </Link>
-          <Link href="/research" className="rounded-lg bg-white dark:bg-zinc-800 p-3 hover:scale-105 transition">
-            📊 Research
-          </Link>
-          <Link href="/projects" className="rounded-lg bg-white dark:bg-zinc-800 p-3 hover:scale-105 transition">
-            🛠️ Projects
-          </Link>
-          <Link href="/briefs" className="rounded-lg bg-white dark:bg-zinc-800 p-3 hover:scale-105 transition">
-            🌅 Brief History
-          </Link>
-        </div>
+        ))}
       </section>
+
+      {/* Today's brief */}
+      <section className="mt-6 mx-5">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 tracking-wide uppercase">
+            Today&apos;s Brief
+          </h2>
+          <Link
+            href="/briefs"
+            className="text-xs font-medium text-blue-600 dark:text-blue-400"
+          >
+            ดูทั้งหมด →
+          </Link>
+        </div>
+
+        {error && (
+          <div className="card p-4 border-red-300 dark:border-red-900 bg-red-50/50 dark:bg-red-950/30">
+            <p className="text-sm text-red-700 dark:text-red-300">⚠ {error}</p>
+            <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-1">
+              ตรวจ GITHUB_TOKEN ใน Vercel
+            </p>
+          </div>
+        )}
+
+        {!error && brief?.content && (
+          <div className="card overflow-hidden">
+            {brief.isFallback && (
+              <div className="px-4 py-2.5 bg-amber-50/70 dark:bg-amber-950/30 border-b border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-200">
+                Brief วันนี้ยังไม่มา — แสดงล่าสุด {brief.date}
+              </div>
+            )}
+            <MarkdownView content={brief.content} />
+          </div>
+        )}
+
+        {!error && !brief?.content && (
+          <div className="card p-8 text-center">
+            <div className="text-3xl mb-2">🌙</div>
+            <p className="text-sm font-medium">ยังไม่มี brief วันนี้</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+              Routine ทำงานทุกเช้า 07:20 BKK
+            </p>
+          </div>
+        )}
+      </section>
+
+      <p className="mt-8 px-5 text-center text-[10px] text-zinc-400 dark:text-zinc-600">
+        Built for NUT • powered by Claude
+      </p>
     </div>
   );
 }

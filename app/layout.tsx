@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import "highlight.js/styles/github-dark.css";
 import Nav from "@/components/Nav";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "AI Secretary",
-  description: "NUT's personal AI secretary — daily brief, lessons, and research",
+  description: "Personal AI hub — daily brief, lessons, research, fitness, chat",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -19,7 +26,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0b" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -33,8 +43,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th">
-      <body className="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased min-h-screen pb-20">
+    <html lang="th" className={inter.variable}>
+      <body className="min-h-screen pb-24 fade-in">
         <main className="max-w-3xl mx-auto">{children}</main>
         <Nav />
       </body>
