@@ -5,15 +5,16 @@ export const runtime = "edge";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-// Try models in order. If rate-limited (429) or fails, fall through.
-// Mix of free models from different providers + paid fallback (very cheap).
+// Free models verified working from user's test_openrouter.py
+// + cheap paid fallback if all rate-limited
 const MODEL_CHAIN = [
   "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemini-2.0-flash-exp:free",
-  "qwen/qwen-2.5-72b-instruct:free",
-  "meta-llama/llama-3.1-70b-instruct:free",
-  "mistralai/mistral-nemo:free",
-  "meta-llama/llama-3.3-70b-instruct", // paid fallback ~$0.13/M in, $0.39/M out
+  "nousresearch/hermes-3-llama-3.1-405b:free",
+  "google/gemma-4-31b-it:free",
+  "qwen/qwen3-coder:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "nvidia/nemotron-nano-9b-v2:free",
+  "meta-llama/llama-3.3-70b-instruct", // paid fallback ~$0.0003/conv
 ];
 
 async function tryModel(
@@ -72,8 +73,8 @@ export async function POST(req: NextRequest) {
     // Read error for retry decision
     const errText = await res.text();
     lastError = `${model}: ${res.status} — ${errText.slice(0, 200)}`;
-    if (res.status === 429 || res.status === 502 || res.status === 503) {
-      // Rate-limited or upstream — try next model
+    if (res.status === 429 || res.status === 502 || res.status === 503 || res.status === 404) {
+      // Rate-limited, upstream issue, or model not found — try next model
       continue;
     }
     // Other errors (401 bad key, etc.) — fail fast
