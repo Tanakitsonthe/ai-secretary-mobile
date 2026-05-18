@@ -3,12 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/", label: "หน้าหลัก", icon: "🏠" },
+  { href: "/", label: "Home", icon: "🏠" },
+  { href: "/chat", label: "Chat", icon: "💬" },
   { href: "/briefs", label: "Brief", icon: "🌅" },
-  { href: "/lessons", label: "บทเรียน", icon: "📚" },
+  { href: "/lessons", label: "เรียน", icon: "📚" },
   { href: "/fitness", label: "Fitness", icon: "💪" },
-  { href: "/research", label: "Research", icon: "📊" },
-  { href: "/projects", label: "Projects", icon: "🛠️" },
+  { href: "/more", label: "More", icon: "⋯" },
 ];
 
 export default function Nav() {
