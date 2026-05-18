@@ -5,7 +5,42 @@ export const runtime = "edge";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-const MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+// Try models in order. If rate-limited (429) or fails, fall through.
+// Mix of free models from different providers + paid fallback (very cheap).
+const MODEL_CHAIN = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  "meta-llama/llama-3.1-70b-instruct:free",
+  "mistralai/mistral-nemo:free",
+  "meta-llama/llama-3.3-70b-instruct", // paid fallback ~$0.13/M in, $0.39/M out
+];
+
+async function tryModel(
+  model: string,
+  apiKey: string,
+  systemPrompt: string,
+  messages: Message[]
+): Promise<Response> {
+  return fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://ai-secretary-mobile.vercel.app",
+      "X-Title": "AI Secretary",
+    },
+    body: JSON.stringify({
+      model,
+      stream: true,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages,
+      ],
+      max_tokens: 1024,
+    }),
+  });
+}
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -22,33 +57,38 @@ export async function POST(req: NextRequest) {
   };
 
   const agent = getAgent(body.agentId);
-  const upstream = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://ai-secretary-mobile.vercel.app",
-        "X-Title": "AI Secretary",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        stream: true,
-        messages: [
-          { role: "system", content: agent.systemPrompt },
-          ...body.messages,
-        ],
-        max_tokens: 1024,
-      }),
-    }
-  );
 
-  if (!upstream.ok) {
-    const text = await upstream.text();
+  let upstream: Response | null = null;
+  let lastError = "";
+  let modelUsed = "";
+
+  for (const model of MODEL_CHAIN) {
+    const res = await tryModel(model, apiKey, agent.systemPrompt, body.messages);
+    if (res.ok) {
+      upstream = res;
+      modelUsed = model;
+      break;
+    }
+    // Read error for retry decision
+    const errText = await res.text();
+    lastError = `${model}: ${res.status} — ${errText.slice(0, 200)}`;
+    if (res.status === 429 || res.status === 502 || res.status === 503) {
+      // Rate-limited or upstream — try next model
+      continue;
+    }
+    // Other errors (401 bad key, etc.) — fail fast
     return new Response(
-      JSON.stringify({ error: `OpenRouter ${upstream.status}: ${text}` }),
-      { status: upstream.status, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ error: lastError }),
+      { status: res.status, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  if (!upstream) {
+    return new Response(
+      JSON.stringify({
+        error: `ทุก model rate-limited — ลองอีกครั้งใน 1 นาที. Last: ${lastError}`,
+      }),
+      { status: 503, headers: { "Content-Type": "application/json" } }
     );
   }
 
