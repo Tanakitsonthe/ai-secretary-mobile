@@ -11,6 +11,7 @@ const AGENT_LIST: AgentId[] = [
   "crypto-tutor",
   "webdev-mentor",
   "daily-briefer",
+  "design-polisher",
   "general",
 ];
 
