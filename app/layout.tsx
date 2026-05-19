@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "highlight.js/styles/github-dark.css";
 import Nav from "@/components/Nav";
+import SWRegister from "@/components/SWRegister";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({
       <body className="min-h-screen pb-24 fade-in">
         <main className="max-w-3xl mx-auto">{children}</main>
         <Nav />
+        <SWRegister />
       </body>
     </html>
   );

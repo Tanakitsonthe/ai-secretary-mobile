@@ -34,6 +34,18 @@ export default async function MorePage() {
       ],
     },
     {
+      title: "Settings",
+      items: [
+        {
+          href: "/settings",
+          title: "⚙️ Settings",
+          desc: "Push notifications + CEO profile",
+          badge: null,
+          badgeColor: "",
+        },
+      ],
+    },
+    {
       title: "Content",
       items: [
         { href: "/briefs", title: "🌅 Briefs", desc: "Daily morning briefs", badge: null, badgeColor: "" },
