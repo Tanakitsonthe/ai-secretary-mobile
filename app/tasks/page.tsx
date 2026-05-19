@@ -1,13 +1,11 @@
 import { getTodayTasks, getAllAgents, type Task } from "@/lib/company";
 import { todayBkkDate } from "@/lib/github";
 import {
-  PRIORITY_TH,
-  PRIORITY_DOT,
   TASK_STATUS_TH,
   TASK_STATUS_ICON,
   TASK_STATUS_ORDER,
 } from "@/lib/labels";
-import Avatar from "@/components/Avatar";
+import TaskRow from "./TaskRow";
 import Link from "next/link";
 
 export const revalidate = 60;
@@ -84,39 +82,14 @@ export default async function TasksPage() {
                 {items.map((t) => {
                   const agent = agentBySlug.get(t.assigned_to);
                   return (
-                    <li key={t.id} className="px-4 py-3 flex items-start gap-3">
-                      <span
-                        className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[t.priority]}`}
-                        title={PRIORITY_TH[t.priority]}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm leading-snug ${
-                            t.status === "done"
-                              ? "line-through text-zinc-500"
-                              : "font-medium"
-                          }`}
-                        >
-                          {t.title}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap text-[11px] text-zinc-500 dark:text-zinc-400">
-                          {agent && (
-                            <Link
-                              href={`/agents/${agent.slug}`}
-                              className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400"
-                            >
-                              <span>{agent.emoji}</span>
-                              <span>{agent.name}</span>
-                            </Link>
-                          )}
-                          <span>· {PRIORITY_TH[t.priority]}</span>
-                          {t.estimated_minutes && (
-                            <span>· {t.estimated_minutes} นาที</span>
-                          )}
-                          {t.deadline && <span>· เดดไลน์ {t.deadline.slice(11, 16)}</span>}
-                        </div>
-                      </div>
-                    </li>
+                    <TaskRow
+                      key={t.id}
+                      task={t}
+                      date={today}
+                      agentEmoji={agent?.emoji}
+                      agentName={agent?.name}
+                      agentSlug={agent?.slug}
+                    />
                   );
                 })}
               </ul>

@@ -11,6 +11,7 @@ import { readFile, todayBkkDate } from "@/lib/github";
 import { PRIORITY_TH, PRIORITY_DOT, TASK_STATUS_ICON, formatTimeAgo } from "@/lib/labels";
 import Avatar from "@/components/Avatar";
 import MarkdownView from "@/components/MarkdownView";
+import SuggestNext from "@/components/SuggestNext";
 import Link from "next/link";
 
 export const revalidate = 300;
@@ -70,19 +71,28 @@ export default async function CEODashboard() {
   return (
     <div>
       {/* Hero */}
-      <header className="px-5 pt-8 pb-5">
-        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 tracking-wide">
-          วัน{weekday} · {dateText}
-        </p>
-        <h1 className="mt-1.5 text-3xl font-bold tracking-tight">
-          สวัสดี{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 bg-clip-text text-transparent">
-            NUT
-          </span>
-        </h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          บริษัทของคุณกำลังทำงานอยู่
-        </p>
+      <header className="px-5 pt-8 pb-5 flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 tracking-wide">
+            วัน{weekday} · {dateText}
+          </p>
+          <h1 className="mt-1.5 text-3xl font-bold tracking-tight">
+            สวัสดี{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-violet-600 dark:from-blue-400 dark:to-violet-400 bg-clip-text text-transparent">
+              NUT
+            </span>
+          </h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            บริษัทของคุณกำลังทำงานอยู่
+          </p>
+        </div>
+        <Link
+          href="/search"
+          aria-label="ค้นหา"
+          className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-lg active:scale-95 transition-transform shrink-0 mt-1"
+        >
+          🔍
+        </Link>
       </header>
 
       {/* Stats — bigger, more breathable */}
@@ -174,6 +184,11 @@ export default async function CEODashboard() {
           </div>
         </section>
       )}
+
+      {/* AI suggestion */}
+      <section className="mt-6 mx-5">
+        <SuggestNext />
+      </section>
 
       {/* Today's tasks */}
       <Section title="ภารกิจวันนี้" href="/tasks" hrefLabel={`ดูทั้งหมด (${stats.tasks_today.total})`}>

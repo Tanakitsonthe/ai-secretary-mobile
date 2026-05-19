@@ -1,5 +1,5 @@
 import { readFile } from "@/lib/github";
-import MarkdownView from "@/components/MarkdownView";
+import BriefWithTTS from "@/components/BriefWithTTS";
 import Link from "next/link";
 
 export const revalidate = 300;
@@ -34,7 +34,7 @@ export default async function BriefDetailPage({
         </div>
       )}
 
-      {content && <MarkdownView content={content} />}
+      {content && <BriefWithTTS content={content} />}
     </div>
   );
 }

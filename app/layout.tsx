@@ -4,6 +4,8 @@ import "./globals.css";
 import "highlight.js/styles/github-dark.css";
 import Nav from "@/components/Nav";
 import SWRegister from "@/components/SWRegister";
+import PullToRefresh from "@/components/PullToRefresh";
+import OnboardingRedirect from "@/components/OnboardingRedirect";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,6 +48,8 @@ export default function RootLayout({
   return (
     <html lang="th" className={inter.variable}>
       <body className="min-h-screen pb-24 fade-in">
+        <OnboardingRedirect />
+        <PullToRefresh />
         <main className="max-w-3xl mx-auto">{children}</main>
         <Nav />
         <SWRegister />
