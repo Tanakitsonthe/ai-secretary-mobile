@@ -211,6 +211,98 @@ export type ActivityEvent = {
   output?: string;
 };
 
+export type Message = {
+  id: string;
+  from: string;
+  to: string;
+  ts: string;
+  subject: string;
+  body: string;
+  thread_id: string | null;
+  in_reply_to: string | null;
+  priority: Priority;
+  read: boolean;
+  read_at: string | null;
+  attachments: string[];
+};
+
+export async function getAllMessages(): Promise<Message[]> {
+  const files = await listDir("company/messages");
+  const messages = await Promise.all(
+    files
+      .filter(
+        (f) =>
+          f.type === "file" &&
+          f.name.endsWith(".json") &&
+          !f.name.startsWith(".")
+      )
+      .map((f) => readJson<Message>(f.path))
+  );
+  return messages
+    .filter((m): m is Message => m !== null)
+    .sort((a, b) => b.ts.localeCompare(a.ts));
+}
+
+export async function getMessagesForAgent(slug: string): Promise<{
+  inbox: Message[];
+  sent: Message[];
+}> {
+  const all = await getAllMessages();
+  return {
+    inbox: all.filter((m) => m.to === slug),
+    sent: all.filter((m) => m.from === slug),
+  };
+}
+
+export type Proposal = {
+  id: string;
+  proposed_by: string;
+  title: string;
+  rationale: string;
+  requested_at: string;
+  status: "pending" | "approved" | "rejected";
+  decided_at: string | null;
+  decided_by: string | null;
+  category: string;
+  affects: string[];
+  estimated_cost_usd?: number;
+  preview?: string;
+};
+
+export async function getPendingProposals(): Promise<Proposal[]> {
+  const files = await listDir("company/proposals");
+  const proposals = await Promise.all(
+    files
+      .filter(
+        (f) =>
+          f.type === "file" &&
+          f.name.endsWith(".json") &&
+          !f.name.startsWith(".")
+      )
+      .map((f) => readJson<Proposal>(f.path))
+  );
+  return proposals
+    .filter((p): p is Proposal => p !== null && p.status === "pending")
+    .sort((a, b) => b.requested_at.localeCompare(a.requested_at));
+}
+
+export async function getDecisions(): Promise<Proposal[]> {
+  const files = await listDir("company/decisions");
+  const decisions = await Promise.all(
+    files
+      .filter(
+        (f) =>
+          f.type === "file" &&
+          f.name.endsWith(".json") &&
+          !f.name.startsWith(".")
+      )
+      .map((f) => readJson<Proposal>(f.path))
+  );
+  return decisions
+    .filter((d): d is Proposal => d !== null)
+    .sort((a, b) => (b.decided_at ?? "").localeCompare(a.decided_at ?? ""));
+}
+
 export async function getTodayActivity(): Promise<ActivityEvent[]> {
   const today = todayBkkDate();
   try {

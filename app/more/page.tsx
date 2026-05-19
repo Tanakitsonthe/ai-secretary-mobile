@@ -1,26 +1,49 @@
+import { getPendingProposals, getAllMessages } from "@/lib/company";
 import Link from "next/link";
 
-const sections = [
-  {
-    title: "Company",
-    items: [
-      { href: "/okrs", title: "🎯 OKRs", desc: "เป้าหมายปี 2026" },
-      { href: "/budget", title: "💸 Budget", desc: "Token / ค่าใช้จ่าย" },
-      { href: "/org", title: "🏢 Org Chart", desc: "ทีมงาน AI ทั้งหมด" },
-    ],
-  },
-  {
-    title: "Content",
-    items: [
-      { href: "/briefs", title: "🌅 Briefs", desc: "Daily morning briefs" },
-      { href: "/lessons", title: "📚 Lessons", desc: "Stock / Web / English / Crypto" },
-      { href: "/research", title: "📊 Research", desc: "NVDA / BTC / Gold reports" },
-      { href: "/projects", title: "🛠️ Projects", desc: "Weekly experiments + portfolio" },
-    ],
-  },
-];
+export const revalidate = 60;
 
-export default function MorePage() {
+export default async function MorePage() {
+  const [pending, messages] = await Promise.all([
+    getPendingProposals(),
+    getAllMessages(),
+  ]);
+  const unread = messages.filter((m) => !m.read && m.to === "ceo").length;
+
+  const sections = [
+    {
+      title: "Company",
+      items: [
+        {
+          href: "/proposals",
+          title: "✋ Proposals",
+          desc: "คำขออนุมัติจากพนักงาน",
+          badge: pending.length > 0 ? `${pending.length}` : null,
+          badgeColor: "bg-amber-500",
+        },
+        {
+          href: "/messages",
+          title: "💌 Messages",
+          desc: "ข้อความระหว่าง agents",
+          badge: unread > 0 ? `${unread}` : null,
+          badgeColor: "bg-red-500",
+        },
+        { href: "/okrs", title: "🎯 OKRs", desc: "เป้าหมายปี 2026", badge: null, badgeColor: "" },
+        { href: "/budget", title: "💸 Budget", desc: "Token / ค่าใช้จ่าย", badge: null, badgeColor: "" },
+        { href: "/org", title: "🏢 Org Chart", desc: "ทีมงาน AI ทั้งหมด", badge: null, badgeColor: "" },
+      ],
+    },
+    {
+      title: "Content",
+      items: [
+        { href: "/briefs", title: "🌅 Briefs", desc: "Daily morning briefs", badge: null, badgeColor: "" },
+        { href: "/lessons", title: "📚 Lessons", desc: "Stock / Web / English / Crypto", badge: null, badgeColor: "" },
+        { href: "/research", title: "📊 Research", desc: "NVDA / BTC / Gold reports", badge: null, badgeColor: "" },
+        { href: "/projects", title: "🛠️ Projects", desc: "Weekly experiments + portfolio", badge: null, badgeColor: "" },
+      ],
+    },
+  ];
+
   return (
     <div>
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
@@ -43,11 +66,20 @@ export default function MorePage() {
                     href={it.href}
                     className="flex items-center justify-between px-4 py-3 active:bg-zinc-100 dark:active:bg-zinc-800/50"
                   >
-                    <div>
-                      <p className="font-medium text-sm">{it.title}</p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                        {it.desc}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <p className="font-medium text-sm">{it.title}</p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                          {it.desc}
+                        </p>
+                      </div>
+                      {it.badge && (
+                        <span
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white ${it.badgeColor}`}
+                        >
+                          {it.badge}
+                        </span>
+                      )}
                     </div>
                     <span className="text-zinc-400">→</span>
                   </Link>

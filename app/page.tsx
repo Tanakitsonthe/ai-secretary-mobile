@@ -4,6 +4,8 @@ import {
   getTodayTasks,
   getOKRs,
   getAllAgents,
+  getPendingProposals,
+  getAllMessages,
 } from "@/lib/company";
 import { readFile, todayBkkDate } from "@/lib/github";
 import MarkdownView from "@/components/MarkdownView";
@@ -44,14 +46,18 @@ const STATUS_EMOJI: Record<string, string> = {
 export default async function CEODashboard() {
   const today = todayBkkDate();
 
-  const [state, stats, tasksFile, okrs, agents, brief] = await Promise.all([
-    getState(),
-    getCompanyStats(),
-    getTodayTasks(),
-    getOKRs(),
-    getAllAgents(),
-    getTodayBrief(),
-  ]);
+  const [state, stats, tasksFile, okrs, agents, brief, proposals, messages] =
+    await Promise.all([
+      getState(),
+      getCompanyStats(),
+      getTodayTasks(),
+      getOKRs(),
+      getAllAgents(),
+      getTodayBrief(),
+      getPendingProposals(),
+      getAllMessages(),
+    ]);
+  const unreadMessages = messages.filter((m) => !m.read && m.to === "ceo").length;
 
   const tasks = tasksFile?.tasks ?? [];
   const topTasks = tasks
@@ -108,6 +114,40 @@ export default async function CEODashboard() {
           href="/okrs"
         />
       </section>
+
+      {/* CEO inbox — proposals + messages */}
+      {(proposals.length > 0 || unreadMessages > 0) && (
+        <section className="mx-5 mt-4 flex gap-2">
+          {proposals.length > 0 && (
+            <Link
+              href="/proposals"
+              className="flex-1 card p-3 border-amber-300 dark:border-amber-900 bg-amber-50/60 dark:bg-amber-950/30 flex items-center gap-2 active:scale-[0.98]"
+            >
+              <span className="text-xl">✋</span>
+              <div className="flex-1">
+                <p className="text-[10px] uppercase tracking-wide font-bold text-amber-700 dark:text-amber-300">
+                  รออนุมัติ
+                </p>
+                <p className="text-sm font-bold">{proposals.length} ข้อ</p>
+              </div>
+            </Link>
+          )}
+          {unreadMessages > 0 && (
+            <Link
+              href="/messages"
+              className="flex-1 card p-3 border-blue-300 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/30 flex items-center gap-2 active:scale-[0.98]"
+            >
+              <span className="text-xl">💌</span>
+              <div className="flex-1">
+                <p className="text-[10px] uppercase tracking-wide font-bold text-blue-700 dark:text-blue-300">
+                  ข้อความใหม่
+                </p>
+                <p className="text-sm font-bold">{unreadMessages}</p>
+              </div>
+            </Link>
+          )}
+        </section>
+      )}
 
       {/* Alerts (if any) */}
       {state?.today.alerts && state.today.alerts.length > 0 && (

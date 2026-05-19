@@ -59,6 +59,53 @@ export async function readFile(path: string): Promise<string> {
   return Buffer.from(data.content, "base64").toString("utf-8");
 }
 
+async function getFileSha(path: string): Promise<string | null> {
+  const url = `${API_BASE}/contents/${encodeURIComponent(path)}`;
+  const res = await fetch(url, { headers: authHeaders(), cache: "no-store" });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.sha ?? null;
+}
+
+export async function writeFile(
+  path: string,
+  content: string,
+  message: string
+): Promise<void> {
+  const sha = await getFileSha(path);
+  const url = `${API_BASE}/contents/${encodeURIComponent(path)}`;
+  const body: Record<string, string> = {
+    message,
+    content: Buffer.from(content, "utf-8").toString("base64"),
+  };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub write ${res.status}: ${await res.text()}`);
+  }
+}
+
+export async function deleteFile(
+  path: string,
+  message: string
+): Promise<void> {
+  const sha = await getFileSha(path);
+  if (!sha) return;
+  const url = `${API_BASE}/contents/${encodeURIComponent(path)}`;
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ message, sha }),
+  });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`GitHub delete ${res.status}: ${await res.text()}`);
+  }
+}
+
 export function todayBkkDate(): string {
   const now = new Date();
   const bkkOffset = 7 * 60;
