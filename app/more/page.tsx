@@ -44,6 +44,27 @@ export default async function MorePage() {
           badgeColor: "",
         },
         {
+          href: "/reflect",
+          title: "📝 Daily Reflection",
+          desc: "ทบทวนวันนี้ก่อนนอน",
+          badge: null,
+          badgeColor: "",
+        },
+        {
+          href: "/activity",
+          title: "⏱ Activity",
+          desc: "เหตุการณ์ของทีมวันนี้",
+          badge: null,
+          badgeColor: "",
+        },
+        {
+          href: "/health",
+          title: "🩺 Health Check",
+          desc: "ตรวจระบบ + env vars",
+          badge: null,
+          badgeColor: "",
+        },
+        {
           href: "/settings",
           title: "⚙️ Settings",
           desc: "Push notifications + CEO profile",
