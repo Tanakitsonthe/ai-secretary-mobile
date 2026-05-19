@@ -122,12 +122,12 @@ export default function QuickAddForm() {
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value as Priority)}
-            className="text-xs font-mono px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800"
+            className="text-xs px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 font-medium"
           >
-            <option value="P0">P0 ด่วน</option>
-            <option value="P1">P1 สำคัญ</option>
-            <option value="P2">P2 ปกติ</option>
-            <option value="P3">P3 ทำได้ทำ</option>
+            <option value="P0">🔴 ด่วนมาก</option>
+            <option value="P1">🟠 สำคัญ</option>
+            <option value="P2">🔵 ปกติ</option>
+            <option value="P3">⚪ ทำได้ทำ</option>
           </select>
 
           <div className="ml-auto flex gap-2">

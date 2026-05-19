@@ -1,21 +1,18 @@
 import { getTodayActivity, getAllAgents } from "@/lib/company";
 import { todayBkkDate } from "@/lib/github";
+import { EVENT_TH } from "@/lib/labels";
+import Avatar from "@/components/Avatar";
 import Link from "next/link";
 
 export const revalidate = 30;
 
-const EVENT_ICON: Record<string, string> = {
-  task_start: "▶️",
-  task_done: "✅",
-  task_blocked: "🚧",
-  task_cancelled: "✖",
-  milestone: "🎯",
-  report_refreshed: "🔄",
-  refresh_skipped: "⏭️",
-  weekly_proposed: "💡",
-  workout_generated: "🏋️",
-  push_sent: "🔔",
-};
+function thaiDate(d: string): string {
+  return new Date(d).toLocaleDateString("th-TH", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
 
 export default async function ActivityPage() {
   const today = todayBkkDate();
@@ -30,9 +27,9 @@ export default async function ActivityPage() {
   return (
     <div>
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
-        <h1 className="text-lg font-bold">⏱ Activity · {today}</h1>
+        <h1 className="text-lg font-bold">กิจกรรมของทีม</h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          {events.length} เหตุการณ์วันนี้
+          {thaiDate(today)} · {events.length} เหตุการณ์
         </p>
       </header>
 
@@ -44,64 +41,53 @@ export default async function ActivityPage() {
         </div>
       )}
 
-      <div className="px-4 py-4">
-        <ol className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-3 space-y-3">
-          {sorted.map((e, i) => {
-            const agent = agentBySlug.get(e.agent);
-            const icon = EVENT_ICON[e.event] ?? "•";
-            return (
-              <li key={i} className="ml-4 relative">
-                <span className="absolute -left-[1.5rem] top-1 w-6 h-6 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-xs">
-                  {icon}
-                </span>
-                <div className="card p-3">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    {agent ? (
-                      <Link
-                        href={`/agents/${agent.slug}`}
-                        className="flex items-center gap-1.5 text-sm font-medium hover:underline"
-                      >
-                        <span>{agent.emoji}</span>
-                        <span>{agent.name}</span>
-                      </Link>
-                    ) : (
-                      <span className="text-sm font-medium">{e.agent}</span>
-                    )}
-                    <span className="text-[10px] font-mono text-zinc-400 tabular shrink-0">
-                      {e.ts.slice(11, 16)}
-                    </span>
-                  </div>
-                  <p className="text-xs">
-                    <span className="font-mono text-blue-600 dark:text-blue-400">
-                      {e.event}
-                    </span>
-                    {e.task_id && (
-                      <span className="ml-2 text-[10px] font-mono text-zinc-500">
-                        {e.task_id}
-                      </span>
-                    )}
-                  </p>
-                  {e.note && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
-                      {e.note}
-                    </p>
-                  )}
-                  {(e.tokens_in || e.tokens_out) && (
-                    <p className="text-[10px] text-zinc-400 mt-1 font-mono">
-                      {e.tokens_in ?? 0} in · {e.tokens_out ?? 0} out
-                    </p>
-                  )}
-                  {e.output && (
-                    <p className="text-[10px] text-zinc-400 mt-1 font-mono truncate">
-                      → {e.output}
-                    </p>
-                  )}
+      <ul className="px-4 py-4 space-y-2">
+        {sorted.map((e, i) => {
+          const agent = agentBySlug.get(e.agent);
+          const ev = EVENT_TH[e.event] ?? { label: e.event, icon: "•" };
+          return (
+            <li key={i} className="card p-3 flex items-start gap-3">
+              {agent ? (
+                <Avatar emoji={agent.emoji} size="md" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-lg">
+                  {ev.icon}
                 </div>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  {agent ? (
+                    <Link
+                      href={`/agents/${agent.slug}`}
+                      className="text-sm font-semibold hover:text-blue-600 dark:hover:text-blue-400"
+                    >
+                      {agent.name}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-semibold">{e.agent}</span>
+                  )}
+                  <span className="text-[11px] text-zinc-500">
+                    · {ev.icon} {ev.label}
+                  </span>
+                  <span className="ml-auto text-[10px] text-zinc-400 tabular">
+                    {e.ts.slice(11, 16)}
+                  </span>
+                </div>
+                {e.note && (
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    {e.note}
+                  </p>
+                )}
+                {(e.tokens_in || e.tokens_out) && (
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    ใช้ token {(e.tokens_in ?? 0) + (e.tokens_out ?? 0)} ตัว
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

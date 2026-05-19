@@ -3,12 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/tasks", label: "Tasks", icon: "📋" },
-  { href: "/org", label: "Org", icon: "🏢" },
-  { href: "/chat", label: "Chat", icon: "💬" },
-  { href: "/fitness", label: "Fitness", icon: "💪" },
-  { href: "/more", label: "More", icon: "⋯" },
+  { href: "/", label: "หน้าหลัก", icon: "🏠" },
+  { href: "/tasks", label: "งาน", icon: "📋" },
+  { href: "/org", label: "ทีม", icon: "🏢" },
+  { href: "/chat", label: "คุย", icon: "💬" },
+  { href: "/fitness", label: "ฟิตเนส", icon: "💪" },
+  { href: "/more", label: "อื่นๆ", icon: "⋯" },
 ];
 
 export default function Nav() {

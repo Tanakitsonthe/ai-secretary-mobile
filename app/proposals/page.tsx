@@ -1,7 +1,8 @@
 import { getPendingProposals, getDecisions, getAllAgents } from "@/lib/company";
 import { listDir } from "@/lib/github";
+import { formatTimeAgo } from "@/lib/labels";
+import Avatar from "@/components/Avatar";
 import { decideProposal } from "./actions";
-import Link from "next/link";
 
 export const revalidate = 60;
 
@@ -23,6 +24,14 @@ async function getPendingWithFilenames() {
   return withFn;
 }
 
+const CATEGORY_TH: Record<string, string> = {
+  "new-routine": "Routine ใหม่",
+  budget: "งบประมาณ",
+  "new-agent": "พนักงานใหม่",
+  policy: "นโยบาย",
+  feature: "ฟีเจอร์",
+};
+
 export default async function ProposalsPage() {
   const [pending, decisions, agents] = await Promise.all([
     getPendingWithFilenames(),
@@ -36,16 +45,16 @@ export default async function ProposalsPage() {
   return (
     <div>
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
-        <h1 className="text-lg font-bold">
-          ✋ Proposals
+        <h1 className="text-lg font-bold flex items-center gap-2">
+          คำขออนุมัติ
           {pending.length > 0 && (
-            <span className="ml-2 inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">
-              {pending.length} รออนุมัติ
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">
+              {pending.length} รอ
             </span>
           )}
         </h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          คำขอจากพนักงาน · CEO ตัดสิน
+          จากทีมงาน · คุณตัดสิน
         </p>
       </header>
 
@@ -53,66 +62,56 @@ export default async function ProposalsPage() {
         <div className="m-4 p-8 rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 text-center text-zinc-500">
           <p className="text-3xl mb-2">✅</p>
           <p className="text-sm font-medium">ไม่มีคำขอค้าง</p>
-          <p className="text-[11px] mt-1">CEO ว่างได้</p>
+          <p className="text-[11px] mt-1">ทีมทำงานเองได้สบาย</p>
         </div>
       )}
 
       <div className="px-4 py-4 space-y-3">
         {pending.map(({ proposal: p, filename }) => {
           const proposer = agentBySlug.get(p.proposed_by);
+          const categoryLabel = CATEGORY_TH[p.category] ?? p.category;
           return (
-            <article key={p.id} className="card p-4">
-              <div className="flex items-center gap-2 mb-2">
-                {proposer && (
-                  <>
-                    <span className="text-lg">{proposer.emoji}</span>
-                    <span className="text-sm font-medium">{proposer.name}</span>
-                  </>
-                )}
-                <span className="text-[10px] font-mono text-zinc-400 ml-auto">
-                  {p.id}
-                </span>
+            <article key={p.id} className="card overflow-hidden">
+              {/* Header */}
+              <div className="px-4 py-3 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800">
+                {proposer && <Avatar emoji={proposer.emoji} size="md" />}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{proposer?.name ?? p.proposed_by}</p>
+                  <p className="text-[11px] text-zinc-500">
+                    {categoryLabel} · {formatTimeAgo(p.requested_at)}
+                  </p>
+                </div>
               </div>
 
-              <h2 className="text-base font-bold leading-tight mb-1">
-                {p.title}
-              </h2>
+              {/* Body */}
+              <div className="px-4 py-3">
+                <h2 className="text-base font-bold leading-tight mb-2">
+                  {p.title}
+                </h2>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                  {p.rationale}
+                </p>
 
-              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3 leading-relaxed">
-                {p.rationale}
-              </p>
-
-              <div className="flex items-center gap-2 mb-3 flex-wrap text-[11px]">
-                <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800">
-                  📂 {p.category}
-                </span>
                 {p.estimated_cost_usd != null && p.estimated_cost_usd > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
-                    💸 ${p.estimated_cost_usd.toFixed(2)}
-                  </span>
+                  <p className="mt-2 text-[11px] text-amber-700 dark:text-amber-300">
+                    💸 ค่าใช้จ่ายประเมิน ${p.estimated_cost_usd.toFixed(2)}
+                  </p>
                 )}
-                {p.affects.map((a) => (
-                  <span
-                    key={a}
-                    className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 font-mono text-[10px]"
-                  >
-                    {a}
-                  </span>
-                ))}
+
+                {p.preview && (
+                  <details className="mt-3">
+                    <summary className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer">
+                      ดูรายละเอียดเพิ่มเติม
+                    </summary>
+                    <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed p-2 rounded bg-zinc-50 dark:bg-zinc-900/50">
+                      {p.preview}
+                    </p>
+                  </details>
+                )}
               </div>
 
-              {p.preview && (
-                <details className="mb-3">
-                  <summary className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer">
-                    ดู preview
-                  </summary>
-                  <pre className="mt-2 text-[11px] p-2 rounded bg-zinc-100 dark:bg-zinc-900 overflow-x-auto whitespace-pre-wrap">
-                    {p.preview}
-                  </pre>
-                </details>
-              )}
-
-              <div className="flex gap-2">
+              {/* Actions */}
+              <div className="px-4 pb-4 flex gap-2">
                 <form
                   action={async () => {
                     "use server";
@@ -122,7 +121,7 @@ export default async function ProposalsPage() {
                 >
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-green-600 text-white font-semibold text-sm active:scale-[0.98] transition-transform"
+                    className="w-full py-3 rounded-xl bg-green-600 text-white font-semibold text-sm active:scale-[0.98] transition-transform"
                   >
                     ✓ อนุมัติ
                   </button>
@@ -136,16 +135,12 @@ export default async function ProposalsPage() {
                 >
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-zinc-200 dark:bg-zinc-800 font-semibold text-sm active:scale-[0.98] transition-transform"
+                    className="w-full py-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 font-semibold text-sm active:scale-[0.98] transition-transform"
                   >
                     ✗ ปฏิเสธ
                   </button>
                 </form>
               </div>
-
-              <p className="text-[10px] text-zinc-400 mt-2 text-center">
-                เสนอเมื่อ {p.requested_at.slice(0, 16).replace("T", " ")}
-              </p>
             </article>
           );
         })}
@@ -155,43 +150,28 @@ export default async function ProposalsPage() {
       {recentDecisions.length > 0 && (
         <section className="px-4 pt-2 pb-8">
           <h2 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 tracking-wide uppercase mb-2 px-1">
-            ตัดสินไปแล้ว
+            ตัดสินไปแล้วล่าสุด
           </h2>
           <ul className="card divide-y divide-zinc-200 dark:divide-zinc-800 overflow-hidden">
             {recentDecisions.map((d) => (
-              <li
-                key={d.id}
-                className="px-4 py-2.5 flex items-center justify-between gap-2"
-              >
+              <li key={d.id} className="px-4 py-3 flex items-center gap-2.5">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    d.status === "approved" ? "bg-green-500" : "bg-red-500"
+                  }`}
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{d.title}</p>
                   <p className="text-[10px] text-zinc-500">
-                    {d.decided_at?.slice(0, 16).replace("T", " ")}
+                    {d.status === "approved" ? "อนุมัติ" : "ปฏิเสธ"} ·{" "}
+                    {d.decided_at ? formatTimeAgo(d.decided_at) : "—"}
                   </p>
                 </div>
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                    d.status === "approved"
-                      ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
-                      : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-                  }`}
-                >
-                  {d.status === "approved" ? "✓ อนุมัติ" : "✗ ปฏิเสธ"}
-                </span>
               </li>
             ))}
           </ul>
         </section>
       )}
-
-      <div className="px-4 pb-8">
-        <Link
-          href="/proposals/schema"
-          className="text-[11px] text-zinc-400 hover:underline block text-center"
-        >
-          ดู schema ของ proposals
-        </Link>
-      </div>
     </div>
   );
 }
