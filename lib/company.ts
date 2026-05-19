@@ -33,6 +33,7 @@ export type AgentProfile = {
   kpi: string;
   prompt_file: string;
   scheduled_routines?: string[];
+  total_tasks_completed?: number;
 };
 
 export type Department = {
@@ -165,8 +166,66 @@ export async function getCEOProfile(): Promise<CEOProfile | null> {
   return readJson<CEOProfile>("company/ceo_profile.json");
 }
 
+async function countFilesIn(dir: string, suffix = ".md"): Promise<number> {
+  try {
+    const files = await listDir(dir);
+    return files.filter((f) => f.type === "file" && f.name.endsWith(suffix)).length;
+  } catch {
+    return 0;
+  }
+}
+
+async function countUniqueDates(dir: string): Promise<number> {
+  try {
+    const files = await listDir(dir);
+    const dates = new Set(
+      files
+        .filter((f) => f.type === "file" && f.name.endsWith(".md"))
+        .map((f) => f.name.match(/^(\d{4}-\d{2}-\d{2})/)?.[1])
+        .filter((d): d is string => !!d)
+    );
+    return dates.size;
+  } catch {
+    return 0;
+  }
+}
+
+// Map KR id -> async function returning current count from real data
+const KR_AUTO_COMPUTE: Record<string, () => Promise<number>> = {
+  "O1-KR2": () => countUniqueDates("fitness/workouts"),
+  "O2-KR1": () => countFilesIn("webdev"),
+  "O2-KR3": () => countFilesIn("english"),
+  "O3-KR1": () => countFilesIn("stocks/lessons"),
+  "O3-KR2": () => countFilesIn("crypto"),
+};
+
 export async function getOKRs(): Promise<OKRsFile | null> {
-  return readJson<OKRsFile>("company/okrs.json");
+  const file = await readJson<OKRsFile>("company/okrs.json");
+  if (!file) return null;
+
+  // Auto-compute KR `current` values for those in the map
+  await Promise.all(
+    file.objectives.map(async (o) => {
+      for (const kr of o.key_results) {
+        const computer = KR_AUTO_COMPUTE[kr.id];
+        if (computer) {
+          try {
+            kr.current = await computer();
+          } catch {}
+        }
+      }
+      // Recompute objective progress = avg of KR progress
+      if (o.key_results.length > 0) {
+        const sumPct = o.key_results.reduce((acc, kr) => {
+          const pct = kr.target > 0 ? Math.min(100, (kr.current / kr.target) * 100) : 0;
+          return acc + pct;
+        }, 0);
+        o.progress_percent = Math.round(sumPct / o.key_results.length);
+      }
+    })
+  );
+
+  return file;
 }
 
 export async function getDepartments(): Promise<DepartmentsFile | null> {

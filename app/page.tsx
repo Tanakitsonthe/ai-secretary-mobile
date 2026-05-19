@@ -31,6 +31,12 @@ async function getTodayBrief() {
   }
 }
 
+function isStale(lastUpdated: string): boolean {
+  const t = new Date(lastUpdated).getTime();
+  if (Number.isNaN(t)) return false;
+  return Date.now() - t > 24 * 3600 * 1000;
+}
+
 function thaiWeekday(d: string): string {
   const days = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
   return days[new Date(d).getDay()] ?? "";
@@ -182,6 +188,27 @@ export default async function CEODashboard() {
               </p>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Stale data warning */}
+      {state && isStale(state.last_updated) && (
+        <section className="mx-5 mt-5">
+          <Link
+            href="/routines"
+            className="card p-3.5 border-amber-300/60 dark:border-amber-900/60 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 flex items-center gap-3 active:scale-[0.98]"
+          >
+            <span className="text-xl">⚠️</span>
+            <div className="flex-1">
+              <p className="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
+                ระบบไม่อัพเดทเกิน 24 ชม.
+              </p>
+              <p className="text-xs text-amber-900 dark:text-amber-100 mt-0.5">
+                Routine อาจไม่ได้รัน — ดู Routines
+              </p>
+            </div>
+            <span className="text-zinc-400">→</span>
+          </Link>
         </section>
       )}
 

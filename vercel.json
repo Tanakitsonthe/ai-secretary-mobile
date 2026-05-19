@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-briefer",
+      "schedule": "20 0 * * *"
+    },
+    {
+      "path": "/api/cron/fitness-daily",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-project",
+      "schedule": "2 2 * * 0"
+    },
+    {
+      "path": "/api/cron/reflect-reminder",
+      "schedule": "0 15 * * *"
+    }
+  ]
+}
