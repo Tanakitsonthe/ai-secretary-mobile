@@ -34,8 +34,15 @@ export default async function MorePage() {
       ],
     },
     {
-      title: "Settings",
+      title: "Quick Actions",
       items: [
+        {
+          href: "/quick",
+          title: "⚡ Quick Add Task",
+          desc: "พูดหรือพิมพ์ — สร้าง task เร็ว",
+          badge: null,
+          badgeColor: "",
+        },
         {
           href: "/settings",
           title: "⚙️ Settings",
